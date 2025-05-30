@@ -222,7 +222,25 @@
           L.marker([latitude, longitude]).addTo(map).bindPopup('Image Location').openPopup();
 
         } else {
-          info.textContent = '❌ No GPS data found in image.';
+          // Get extended EXIF info when no GPS data
+          const date = EXIF.getTag(this, "DateTimeOriginal") || "Unknown";
+          const make = EXIF.getTag(this, "Make") || "Unknown";
+          const model = EXIF.getTag(this, "Model") || "Unknown";
+          const exposure = EXIF.getTag(this, "ExposureTime") || "Unknown";
+          const apertureRaw = EXIF.getTag(this, "FNumber");
+          const aperture = apertureRaw ? `f/${apertureRaw}` : "Unknown";
+          const iso = EXIF.getTag(this, "ISOSpeedRatings") || "Unknown";
+          const flashRaw = EXIF.getTag(this, "Flash");
+          const flash = flashRaw !== undefined ? (flashRaw & 1 ? "Flash fired" : "Flash did not fire") : "Unknown";
+
+          info.innerHTML = `
+            ❌ No GPS data found in image.<br><br>
+            📅 Date Taken: ${date}<br>
+            📷 Device: ${make} ${model}<br>
+            💡 Exposure: ${exposure} sec, Aperture: ${aperture}, ISO: ${iso}<br>
+            ⚡ Flash: ${flash}
+          `;
+
           if (map) {
             map.remove();
           }
