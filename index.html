@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>3T-H4CK3R5 Image Location Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+  <style>
+    /* --- MATRIX BACKGROUND --- */
+    body, html {
+      margin: 0; padding: 0;
+      height: 100%;
+      background: #000;
+      color: #0f0;
+      font-family: 'Courier New', Courier, monospace;
+      overflow-x: hidden;
+      position: relative;
+      user-select: none;
+    }
+    canvas#matrix {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+      mix-blend-mode: screen;
+    }
+
+    /* --- HEADER --- */
+    h1 {
+      font-size: 2.8rem;
+      text-align: center;
+      margin-top: 2rem;
+      margin-bottom: 0;
+      letter-spacing: 0.12em;
+      position: relative;
+      user-select: none;
+    }
+    h1::after {
+      content: '_';
+      color: #0f0;
+      animation: blink 1s step-start infinite;
+      position: absolute;
+      right: 10px;
+      top: 0;
+      font-weight: bold;
+    }
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0; }
+    }
+
+    /* --- PARAGRAPH --- */
+    p {
+      text-align: center;
+      font-size: 1.2rem;
+      margin: 10px 0 30px 0;
+      user-select: none;
+    }
+
+    /* --- CONSOLE STYLE INFO BOX --- */
+    #info {
+      background: #010;
+      border: 1px solid #0f0;
+      padding: 1rem;
+      margin: 1rem auto;
+      max-width: 700px;
+      min-height: 3rem;
+      font-size: 1.1rem;
+      white-space: pre-wrap;
+      box-shadow: 0 0 15px #0f0aa0;
+      border-radius: 8px;
+      user-select: text;
+      font-weight: 600;
+    }
+
+    /* --- FILE INPUT BUTTON STYLE --- */
+    #imageInput {
+      display: block;
+      margin: 0 auto;
+      padding: 0.6rem 1.3rem;
+      font-size: 1rem;
+      color: #0f0;
+      background: transparent;
+      border: 2px solid #0f0;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: monospace;
+      transition: background 0.3s, color 0.3s;
+      user-select: none;
+    }
+    #imageInput:hover {
+      background: #0f0;
+      color: #000;
+    }
+    #imageInput:focus {
+      outline: none;
+      box-shadow: 0 0 12px #0f0;
+    }
+
+    /* --- MAP CONTAINER --- */
+    #map {
+      margin: 20px auto;
+      height: 400px;
+      max-width: 700px;
+      border-radius: 10px;
+      border: 2px solid #0f0;
+      box-shadow: 0 0 15px #0f0;
+      user-select: none;
+    }
+
+    /* --- FOOTER --- */
+    footer {
+      text-align: center;
+      margin: 3rem 0 2rem 0;
+      font-size: 1rem;
+      color: #0f0;
+      user-select: none;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+    }
+    footer a {
+      color: #0f0;
+      text-decoration: underline;
+      font-weight: 900;
+    }
+    footer a:hover {
+      color: #afa;
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="matrix"></canvas>
+
+  <h1>3T-H4CK3R5 Image Location Tracker</h1>
+  <p>Select an image with embedded GPS location data.</p>
+
+  <input type="file" id="imageInput" accept="image/*" />
+
+  <div id="info">Waiting for image upload...</div>
+  <div id="map"></div>
+
+  <footer>
+    Developed by <a href="https://yosefsolomon21.github.io/Yosefsolomon/" target="_blank" rel="noopener noreferrer">Ethical Hacker Yosef</a>
+  </footer>
+
+  <script src="https://unpkg.com/exif-js"></script>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <script>
+    // MATRIX RAIN EFFECT
+    const canvas = document.getElementById('matrix');
+    const ctx = canvas.getContext('2d');
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
+
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()*&^%';
+    const fontSize = 16;
+    const columns = Math.floor(width / fontSize);
+    const drops = Array(columns).fill(1);
+
+    function drawMatrix() {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      ctx.fillRect(0, 0, width, height);
+      ctx.fillStyle = '#0f0';
+      ctx.font = fontSize + 'px monospace';
+
+      for (let i = 0; i < drops.length; i++) {
+        const text = letters.charAt(Math.floor(Math.random() * letters.length));
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+        if (drops[i] * fontSize > height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+        drops[i]++;
+      }
+    }
+    setInterval(drawMatrix, 50);
+
+    // GEOLOCATION MAP LOGIC
+    const imageInput = document.getElementById('imageInput');
+    const info = document.getElementById('info');
+    let map;
+
+    function toDecimal(dms, ref) {
+      const [deg, min, sec] = dms;
+      let dec = deg + min / 60 + sec / 3600;
+      if (ref === 'S' || ref === 'W') dec *= -1;
+      return dec;
+    }
+
+    imageInput.addEventListener('change', () => {
+      const file = imageInput.files[0];
+      if (!file) return;
+
+      info.textContent = 'Analyzing image metadata...';
+
+      EXIF.getData(file, function() {
+        const lat = EXIF.getTag(this, 'GPSLatitude');
+        const latRef = EXIF.getTag(this, 'GPSLatitudeRef');
+        const lon = EXIF.getTag(this, 'GPSLongitude');
+        const lonRef = EXIF.getTag(this, 'GPSLongitudeRef');
+
+        if (lat && lon) {
+          const latitude = toDecimal(lat, latRef);
+          const longitude = toDecimal(lon, lonRef);
+
+          info.textContent = `📍 Latitude: ${latitude.toFixed(6)}, Longitude: ${longitude.toFixed(6)}`;
+
+          if (map) {
+            map.remove();
+          }
+          map = L.map('map').setView([latitude, longitude], 15);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+          }).addTo(map);
+          L.marker([latitude, longitude]).addTo(map).bindPopup('Image Location').openPopup();
+
+        } else {
+          info.textContent = '❌ No GPS data found in image.';
+          if (map) {
+            map.remove();
+          }
+          document.getElementById('map').innerHTML = '';
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>
