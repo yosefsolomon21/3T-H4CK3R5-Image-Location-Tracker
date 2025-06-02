@@ -137,6 +137,7 @@
 
   <h1>3T-H4CK3R5 Image Location Tracker</h1>
   <p>Select an image with embedded GPS location data.</p>
+   <p>የጂፒኤስ መገኛ መረጃ ያለው ምስል ይምረጡ.</p>
 
   <input type="file" id="imageInput" accept="image/*" />
 
@@ -223,22 +224,22 @@
 
         } else {
           // Get extended EXIF info when no GPS data
-          const date = EXIF.getTag(this, "DateTimeOriginal") || "Unknown";
-          const make = EXIF.getTag(this, "Make") || "Unknown";
-          const model = EXIF.getTag(this, "Model") || "Unknown";
-          const exposure = EXIF.getTag(this, "ExposureTime") || "Unknown";
+          const date = EXIF.getTag(this, "DateTimeOriginal") || "Unknown/ያልታወቀ";
+          const make = EXIF.getTag(this, "Make") || "Unknown/ያልታወቀ";
+          const model = EXIF.getTag(this, "Model") || "Unknown/ያልታወቀ";
+          const exposure = EXIF.getTag(this, "ExposureTime") || "Unknown/ያልታወቀ";
           const apertureRaw = EXIF.getTag(this, "FNumber");
-          const aperture = apertureRaw ? `f/${apertureRaw}` : "Unknown";
-          const iso = EXIF.getTag(this, "ISOSpeedRatings") || "Unknown";
+          const aperture = apertureRaw ? `f/${apertureRaw}` : "Unknown/ያልታወቀ";
+          const iso = EXIF.getTag(this, "ISOSpeedRatings") || "Unknown/ያልታወቀ";
           const flashRaw = EXIF.getTag(this, "Flash");
-          const flash = flashRaw !== undefined ? (flashRaw & 1 ? "Flash fired" : "Flash did not fire") : "Unknown";
+          const flash = flashRaw !== undefined ? (flashRaw & 1 ? "Flash fired" : "Flash did not fire") : "Unknown/ያልታወቀ";
 
           info.innerHTML = `
-            ❌ No GPS data found in image.<br><br>
-            📅 Date Taken: ${date}<br>
-            📷 Device: ${make} ${model}<br>
-            💡 Exposure: ${exposure} sec, Aperture: ${aperture}, ISO: ${iso}<br>
-            ⚡ Flash: ${flash}
+            ❌ No GPS data found in image/በምስሉ ላይ ምንም የጂፒኤስ ውሂብ አልተገኘም.<br><br>
+            📅 Date Taken/የተወሰደበት ቀን: ${date}<br>
+            📷 Device/መሳሪያ: ${make} ${model}<br>
+            💡 Exposure/ተጋላጭነት: ${exposure} sec, Aperture: ${aperture}, ISO: ${iso}<br>
+            ⚡ Flash/ብልጭታ: ${flash}
           `;
 
           if (map) {
