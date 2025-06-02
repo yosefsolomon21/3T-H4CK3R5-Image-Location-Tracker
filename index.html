@@ -141,7 +141,7 @@
 
   <input type="file" id="imageInput" accept="image/*" />
 
-  <div id="info">Waiting for image upload...</div>
+  <div id="info">Waiting for image upload/ምስል ሰቀላን በመጠበቅ ላይ...</div>
   <div id="map"></div>
 
   <footer>
@@ -160,7 +160,7 @@
     canvas.width = width;
     canvas.height = height;
 
-    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()*&^%';
+    const letters = ' ሁለሐመሠረሰሸቀበተቸኀነኘአከኸወዐዘዠየደጀገጠጨጰጸፀፈፐ፩	፪	፫	፬	፭ ፮ ፯ ፰ ፱	፲ ፳ ፴ ፵ ፶	፷	፸	፹	፺ ፻@#$%^&*()*&^%';
     const fontSize = 16;
     const columns = Math.floor(width / fontSize);
     const drops = Array(columns).fill(1);
@@ -211,7 +211,7 @@
           const latitude = toDecimal(lat, latRef);
           const longitude = toDecimal(lon, lonRef);
 
-          info.textContent = `📍 Latitude: ${latitude.toFixed(6)}, Longitude: ${longitude.toFixed(6)}`;
+          info.textContent = `📍 Latitude/ኬክሮስ: ${latitude.toFixed(6)}, Longitude/ኬንትሮስ: ${longitude.toFixed(6)}`;
 
           if (map) {
             map.remove();
@@ -220,7 +220,7 @@
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
           }).addTo(map);
-          L.marker([latitude, longitude]).addTo(map).bindPopup('Image Location').openPopup();
+          L.marker([latitude, longitude]).addTo(map).bindPopup('Image Location/የምስል ቦታ').openPopup();
 
         } else {
           // Get extended EXIF info when no GPS data
